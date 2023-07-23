@@ -1,9 +1,7 @@
-
 import random
 import json
+import time
 
-#---PASSWORD GENERATOR--#
-website = ""
 
 def password_generator():
     letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
@@ -29,24 +27,65 @@ def password_generator():
     if is_ok == 'y':
         return password
     else:
+        print("Nie zapisano hasła.")
+        time.sleep(1)
+        print("Zaraz otrzymasz nowe hasło")
+        time.sleep(1)
         return password_generator()
 
 
-def save_password_to_json(password):
-    data = {
-        "website": website,
-        "password": password
+def check(website):
+    try:
+        with open("password.json", "r") as data_file:
+            data = json.load(data_file)
+
+    except FileNotFoundError:
+        return 'y'
+
+    else:
+        if website in data:
+            print(f'Istnieje już hasło dla konta {website}')
+            what_next = input('czy nadpisać hasło? y \nczy zrezygnować? n \n')
+            return what_next
+        else:
+            return 'y'
+
+
+def save_password_to_json(website, password):
+    new_data = {
+        website : password
     }
 
-    with open("password.json", "w") as json_file:
-        json_file.write(f"{data['website']}: {data['password']}\n")
+    try:
+        with open("password.json", "r") as data_file:
+            data = json.load(data_file)
 
 
+    except FileNotFoundError:
+        with open("password.json", "w") as data_file:
+            json.dump(new_data, data_file, indent=4)
 
-website = input("Hasło do: ")
+    else:
+        # updating old data with new data
+        data.update(new_data)
 
-my_password = password_generator()
-print(f"Twoje hasło: {my_password}")
+        with open("password.json", "w") as data_file:
+            # saving updated data
+            json.dump(data, data_file, indent=4)
 
-save_password_to_json(my_password)
-print('Hasło zostało zapisane')
+
+#-------------------------------------------------------
+
+done = "n"
+while done == 'n':
+    website = input("Hasło do: ")
+    what_next = check(website)
+
+    if what_next =="y":
+        my_password = password_generator()
+        save_password_to_json(website, my_password)
+        print('Hasło zostało zapisane')
+
+    done = input("Koniec na dzisiaj: y\nWygeneruj hasło dla nowego konta: n\n")
+
+print('baj baj')
